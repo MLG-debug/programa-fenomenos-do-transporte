@@ -112,12 +112,18 @@ export const App = () => {
   }
 
   const recalculateEquation = () => {
-    let Q = parseFloat(getValues("Q"));
-    let h = parseFloat(getValues("h"));
-    let D = parseFloat(getValues("D"));
-    let L = parseFloat(getValues("L"));
-    let m = material;
-    calculateEquation({ Q, h, D, L, m });
+    let Q = getValues("Q");
+    let h = getValues("h");
+    let D = getValues("D");
+    let L = getValues("L");
+    if (Q && h && D && L) {
+      Q = parseFloat(Q);
+      h = parseFloat(h);
+      D = parseFloat(D);
+      L = parseFloat(L);
+      let m = material;
+      calculateEquation({ Q, h, D, L, m });
+    }
   }
 
   const handleReset = () => {
@@ -174,7 +180,7 @@ export const App = () => {
                       <InputLeftAddon children={input.letter} color='gray.500' />
                       {/* <Input onFocus={(e) => e.target.select()} step="0.0001" type="number" placeholder={input.placeholder} {...register(input.letter, { required: true })} /> */}
                       <NumberInput min={0.001} precision={3} step={0.001} >
-                        <NumberInputField {...register(input.letter, { required: true })} onFocus={(e) => e.target.select()} pr={1} textAlign="center" color="gray.600" fontWeight="medium" fontSize={14} pl={1} borderRadius={0} placeholder={input.placeholder} />
+                        <NumberInputField {...register(input.letter, { required: true })} onFocus={(e) => e.target.select()} pr={1} textAlign="center" color="gray.600" bg="white" fontWeight="medium" fontSize={14} pl={1} borderRadius={0} placeholder={input.placeholder} />
                       </NumberInput>
                       <InputRightAddon children={input.unit} color='gray.500' />
                     </InputGroup>
