@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Container, Box, Stack, Input, Text, ButtonGroup, Button, IconButton, Grid, GridItem, Divider, InputGroup, InputRightAddon, InputLeftAddon, Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverBody, PopoverArrow, Flex, NumberInput, NumberInputField, Image, Slider, SliderTrack, SliderFilledTrack, SliderThumb } from "@chakra-ui/react"
 import CalculateIcon from '@mui/icons-material/Calculate';
 import CloseIcon from '@mui/icons-material/Close';
@@ -74,6 +74,7 @@ export const App = () => {
 
   const handleMaterial = (e: any) => {
     setMaterial(e.target.value)
+    setValue("m", e.target.value)
     if (calculate) {
       recalculateEquation()
     }
@@ -84,12 +85,18 @@ export const App = () => {
     let h = parseFloat(data.h);
     let D = parseFloat(data.D);
     let L = parseFloat(data.L);
-    let m = material;
-    calculateEquation({ Q, h, D, L, m });
+    // let m = material;
+    calculateEquation({ Q, h, D, L });
     setCalculate(true);
   }
 
-  const calculateEquation = ({ Q, h, D, L, m }: { Q: number, h: number, D: number, L: number, m: number, }) => {
+  useEffect(() => {
+    setValue("m", 0)
+    setValue("ef", 70)
+  }, [])
+
+
+  const calculateEquation = ({ Q, h, D, L }: { Q: number, h: number, D: number, L: number }) => {
     let flow_rate = Q / 1000;
     let diameter = D / 1000;
     let velocity = (flow_rate * 4) / (Math.PI * diameter ** 2);
@@ -98,7 +105,7 @@ export const App = () => {
     let Re = (velocity * diameter) / viscosity;
     // calcular f
     let eq1 = (64 / Re) ** 8;
-    let eq3 = Math.log((materials[m].value / (3.7 * diameter)) + (5.74 / (Re ** 0.9)))
+    let eq3 = Math.log((materials[getValues("m")].value / (3.7 * diameter)) + (5.74 / (Re ** 0.9)))
     let eq4 = (2500 / Re) ** 6;
     let eq2 = (eq3 - eq4) ** -16;
     let f = (eq1 + 9.5 * eq2) ** 0.125
@@ -106,7 +113,7 @@ export const App = () => {
     let hf = f * ((L / diameter) * (velocity ** 2) / (2 * 9.81))
     let hm = h + hf;
     // calcular potência
-    let N = (10000 * flow_rate * hm) / (efficiency / 100)
+    let N = (10000 * flow_rate * hm) / (getValues("ef") / 100)
     setResult({ hm, hf, f, energyCV: N / 735, energyW: N });
     window.scrollTo(0, 10000)
   }
@@ -121,8 +128,8 @@ export const App = () => {
       h = parseFloat(h);
       D = parseFloat(D);
       L = parseFloat(L);
-      let m = material;
-      calculateEquation({ Q, h, D, L, m });
+      // let m = material;
+      calculateEquation({ Q, h, D, L });
     }
   }
 
@@ -137,6 +144,7 @@ export const App = () => {
 
   const handleEfficiency = (value: number) => {
     setEfficiency(value)
+    setValue("ef", value)
     recalculateEquation()
   }
 
@@ -167,7 +175,7 @@ export const App = () => {
         <Box>
           <Text mb={2} fontSize="lg" color="gray.500" fontWeight="medium">Representação</Text>
           <Box display="flex" justifyContent="center">
-            <Image pointerEvents="none" src="/BOMBA.png" height="130px" objectFit='cover' alt="reservatórios conectados por uma bomba" />
+            <Image pointerEvents="none" src="./BOMBA.png" height="130px" objectFit='cover' alt="reservatórios conectados por uma bomba" />
           </Box>
           <Divider my={4} />
           <Text mb={2} fontSize="lg" color="gray.500" fontWeight="medium">Informações do problema</Text>
