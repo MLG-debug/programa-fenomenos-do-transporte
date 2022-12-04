@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Container, Box, Stack, Input, Text, ButtonGroup, Button, IconButton, Grid, GridItem, Divider, InputGroup, InputRightAddon, InputLeftAddon, Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverBody, PopoverArrow, Flex } from "@chakra-ui/react"
+import { Container, Box, Stack, Input, Text, ButtonGroup, Button, IconButton, Grid, GridItem, Divider, InputGroup, InputRightAddon, InputLeftAddon, Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverBody, PopoverArrow, Flex, NumberInput, NumberInputField, Image, Slider, SliderTrack, SliderFilledTrack, SliderThumb } from "@chakra-ui/react"
 import CalculateIcon from '@mui/icons-material/Calculate';
 import CloseIcon from '@mui/icons-material/Close';
 import { useForm } from "react-hook-form"
@@ -40,19 +40,19 @@ const inputs = [
   {
     letter: "h",
     unit: "m",
-    placeholder: "Desnível reservatórios",
+    placeholder: "Desnível",
     popover: "Informe o desnível entre os reservatórios"
   },
   {
     letter: "D",
     unit: "mm",
-    placeholder: "Diâmetro tubulação",
+    placeholder: "Diâmetro",
     popover: "Informe o diâmetro da tubulação"
   },
   {
     letter: "L",
     unit: "m",
-    placeholder: "Comprimento tubulação",
+    placeholder: "Comprimento",
     popover: "Informe o comprimento da tubulação"
   }
 ]
@@ -60,7 +60,7 @@ const inputs = [
 const materials = [
   { name: "Ferro fundido", value: 0.3 / 1000 },
   { name: "PVC", value: 0.01 / 1000 },
-  { name: "Aço", value: 0.05 / 1000 }
+  { name: "Aço", value: 0.05 / 1000 },
 ]
 
 export const App = () => {
@@ -68,18 +68,14 @@ export const App = () => {
   const [material, setMaterial] = useState(0)
   const [result, setResult] = useState(initial_values)
   const [calculate, setCalculate] = useState(false)
+  const [efficiency, setEfficiency] = useState(70)
 
-  const { register, handleSubmit, reset, getValues } = useForm()
+  const { register, handleSubmit, reset, getValues, setValue } = useForm()
 
   const handleMaterial = (e: any) => {
     setMaterial(e.target.value)
     if (calculate) {
-      let Q = parseFloat(getValues("Q"));
-      let h = parseFloat(getValues("h"));
-      let D = parseFloat(getValues("D"));
-      let L = parseFloat(getValues("L"));
-      let m = e.target.value;
-      calculateEquation({ Q, h, D, L, m });
+      recalculateEquation()
     }
   }
 
@@ -94,8 +90,9 @@ export const App = () => {
   }
 
   const calculateEquation = ({ Q, h, D, L, m }: { Q: number, h: number, D: number, L: number, m: number, }) => {
+    let flow_rate = Q / 1000;
     let diameter = D / 1000;
-    let velocity = (Q * 4) / (Math.PI * diameter ** 2);
+    let velocity = (flow_rate * 4) / (Math.PI * diameter ** 2);
     let viscosity = 10 ** -6;
     // número do Reinaldo
     let Re = (velocity * diameter) / viscosity;
@@ -109,15 +106,32 @@ export const App = () => {
     let hf = f * ((L / diameter) * (velocity ** 2) / (2 * 9.81))
     let hm = h + hf;
     // calcular potência
-    let N = (10000 * Q * hm) / 0.7
+    let N = (10000 * flow_rate * hm) / (efficiency / 100)
     setResult({ hm, hf, f, energyCV: N / 735, energyW: N });
+    window.scrollTo(0, 10000)
+  }
+
+  const recalculateEquation = () => {
+    let Q = parseFloat(getValues("Q"));
+    let h = parseFloat(getValues("h"));
+    let D = parseFloat(getValues("D"));
+    let L = parseFloat(getValues("L"));
+    let m = material;
+    calculateEquation({ Q, h, D, L, m });
   }
 
   const handleReset = () => {
-    reset()
     setMaterial(0);
     setResult(initial_values);
     setCalculate(false);
+    setEfficiency(70)
+    reset({ Q: '', h: '', D: '', L: '' })
+    console.log(getValues())
+  }
+
+  const handleEfficiency = (value: number) => {
+    setEfficiency(value)
+    recalculateEquation()
   }
 
   const Paint = (str: string) => {
@@ -127,14 +141,29 @@ export const App = () => {
   }
 
   return (
-    <Container maxW='container.lg' mt={10} >
-
-      <Box shadow={"md"} p={4} border="1px" borderColor={'gray.300'} borderRadius={8} onSubmit={handleSubmit(onSubmit)}>
+    <Container maxW='container.lg' my={10} >
+      <Box bg="gray.50" mt={4} p={4} border="1px" borderColor={'gray.300'} borderRadius={8}>
+        <Text fontSize="lg" alignItems="center" display="flex" color="gray.500" fontWeight="medium"> <GroupsIcon sx={{ mr: 1 }} /> Alunos - Fenômenos de Transporte - Engenharia de Computação - UEPG</Text>
+        <Divider my={4} />
+        <Flex width="100%" flexWrap="wrap">
+          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Michael L. Gomes`)}</Text>
+          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Eduardo E. S. Borges`)}</Text>
+          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Gabriel M. Oliveira`)}</Text>
+          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Victor G. A. e Almeida`)}</Text>
+          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Mateus J. S. Gomes`)}</Text>
+        </Flex>
+      </Box>
+      <Box bg="gray.50" mt={4} p={4} border="1px" borderColor={'gray.300'} borderRadius={8} onSubmit={handleSubmit(onSubmit)}>
         <Box>
           <Text fontSize="lg" alignItems="center" display="flex" color="gray.500" fontWeight="medium"> <TerminalIcon sx={{ mr: 1 }} /> Software de dimensionamento preliminar de bombas para transporte de água</Text>
         </Box>
         <Divider my={4} />
         <Box>
+          <Text mb={2} fontSize="lg" color="gray.500" fontWeight="medium">Representação</Text>
+          <Box display="flex" justifyContent="center">
+            <Image pointerEvents="none" src="/BOMBA.png" height="130px" objectFit='cover' alt="reservatórios conectados por uma bomba" />
+          </Box>
+          <Divider my={4} />
           <Text mb={2} fontSize="lg" color="gray.500" fontWeight="medium">Informações do problema</Text>
           <Grid templateColumns='0.8fr 0.8fr 0.8fr 0.8fr 0.5fr' gap={4} as="form" id="form_calculate">
             {inputs.map(input => (
@@ -143,7 +172,10 @@ export const App = () => {
                   <PopoverTrigger>
                     <InputGroup>
                       <InputLeftAddon children={input.letter} color='gray.500' />
-                      <Input step="0.0001" type="number" placeholder={input.placeholder} {...register(input.letter, { required: true })} />
+                      {/* <Input onFocus={(e) => e.target.select()} step="0.0001" type="number" placeholder={input.placeholder} {...register(input.letter, { required: true })} /> */}
+                      <NumberInput min={0.001} precision={3} step={0.001} >
+                        <NumberInputField {...register(input.letter, { required: true })} onFocus={(e) => e.target.select()} pr={1} textAlign="center" color="gray.600" fontWeight="medium" fontSize={14} pl={1} borderRadius={0} placeholder={input.placeholder} />
+                      </NumberInput>
                       <InputRightAddon children={input.unit} color='gray.500' />
                     </InputGroup>
                   </PopoverTrigger>
@@ -167,32 +199,33 @@ export const App = () => {
           <Text mb={2} fontSize="lg" color="gray.500" fontWeight="medium">Opções de material da tubulação</Text>
           <ButtonGroup variant='solid' >
             {materials.map((m, i) => (
-              <Button key={m.name} colorScheme="blue" id={"material_" + i} value={i} onClick={handleMaterial} disabled={material == i} >{m.name} (ε = {m.value})</Button>
+              <Button size="sm" key={m.name} colorScheme="blue" id={"material_" + i} value={i} onClick={handleMaterial} disabled={material == i} >{m.name} (ε = {m.value})</Button>
             ))}
           </ButtonGroup>
         </Box>
       </Box>
       {calculate ?
-        <Box shadow={"md"} mt={4} p={4} border="1px" borderColor={'gray.300'} borderRadius={8}>
+        <Box bg="gray.50" mt={4} p={4} border="1px" borderColor={'gray.300'} borderRadius={8}>
           <Text alignItems="center" display="flex" fontSize="lg" color="gray.500" fontWeight="medium"><BookIcon sx={{ mr: 1 }} />Resultados</Text>
           <Divider my={4} />
-          <Text mt={1} fontSize="lg" color="gray.500" fontWeight="medium">Carga (f): {Paint(`${result.f.toFixed(4)} m`)}</Text>
-          <Text mt={1} fontSize="lg" color="gray.500" fontWeight="medium">Perda de carga (Hf): {Paint(`${result.hf.toFixed(4)} m`)}</Text>
-          <Text mt={1} fontSize="lg" color="gray.500" fontWeight="medium">Altura manométrica da bomba (Hm): {Paint(`${result.hm.toFixed(4)} m`)}</Text>
-          <Text mt={1} fontSize="lg" color="gray.500" fontWeight="medium">Potência elétrica consumida: {Paint(`${result.energyW.toFixed(4)} W`)} = {Paint(`${result.energyCV.toFixed(4)} CV`)}</Text>
+          <Text mt={1} fontSize="lg" color="gray.500" fontWeight="medium">Coeficiente de perda de carga (f) {Paint(`${result.f.toFixed(3)} m`)}</Text>
+          <Text mt={1} fontSize="lg" color="gray.500" fontWeight="medium">Perda de carga (Hf) {Paint(`${result.hf.toFixed(3)} m`)}</Text>
+          <Text mt={1} fontSize="lg" color="gray.500" fontWeight="medium">Altura manométrica da bomba (Hm) {Paint(`${result.hm.toFixed(3)} m`)}</Text>
+          <Divider my={4} />
+          <Text fontSize="lg" color="gray.500" fontWeight="medium">Rendimento (η)</Text>
+          <Slider
+            flex='1'
+            focusThumbOnChange={false}
+            value={efficiency}
+            onChange={handleEfficiency}
+          > <SliderTrack>
+              <SliderFilledTrack />
+            </SliderTrack>
+            <SliderThumb fontSize='xs' color="gray.500" fontWeight="medium" boxSize='fit-content' p={1} borderRadius={6} children={`${efficiency}%`} />
+          </Slider>
+          <Text mt={1} fontSize="lg" color="gray.500" fontWeight="medium">Potência elétrica consumida {Paint(`${result.energyW.toFixed(3)} W`)} = {Paint(`${result.energyCV.toFixed(3)} CV`)}</Text>
         </Box>
         : null}
-      <Box shadow={"md"} mt={4} p={4} border="1px" borderColor={'gray.300'} borderRadius={8}>
-        <Text fontSize="lg" alignItems="center" display="flex" color="gray.500" fontWeight="medium"> <GroupsIcon sx={{ mr: 1 }} /> Alunos</Text>
-        <Divider my={4} />
-        <Flex width="100%" flexWrap="wrap">
-          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Michael Lemes Gomes`)}</Text>
-          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Eduardo Espirito Santo Borges`)}</Text>
-          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Gabriel Manesco de Oliveira`)}</Text>
-          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Victor Gabriel de Almeida e Almeida`)}</Text>
-          <Text m={1} whiteSpace="nowrap" fontSize="lg" color="gray.500" fontWeight="medium">{Paint(`Matheus José da Silva Gomes`)}</Text>
-        </Flex>
-      </Box>
     </Container>
   )
 }
