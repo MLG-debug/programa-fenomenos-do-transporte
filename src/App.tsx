@@ -213,7 +213,7 @@ export const App = () => {
           <Text mb={2} fontSize="lg" color="gray.500" fontWeight="medium">Opções de material da tubulação</Text>
           <ButtonGroup variant='solid' >
             {materials.map((m, i) => (
-              <Button size="sm" key={m.name} colorScheme="blue" id={"material_" + i} value={i} onClick={handleMaterial} disabled={material == i} >{m.name} (ε = {m.value})</Button>
+              <Button size="sm" key={m.name} colorScheme="blue" id={"material_" + i} value={i} onClick={handleMaterial} disabled={material == i} >{m.name} (ε = {m.value} m)</Button>
             ))}
           </ButtonGroup>
         </Box>
