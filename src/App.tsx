@@ -86,6 +86,7 @@ export const App = () => {
     let D = parseFloat(data.D);
     let L = parseFloat(data.L);
     // let m = material;
+    console.log(data)
     calculateEquation({ Q, h, D, L });
     setCalculate(true);
   }
@@ -94,7 +95,6 @@ export const App = () => {
     setValue("m", 0)
     setValue("ef", 70)
   }, [])
-
 
   const calculateEquation = ({ Q, h, D, L }: { Q: number, h: number, D: number, L: number }) => {
     let flow_rate = Q / 1000;
@@ -187,8 +187,8 @@ export const App = () => {
                     <InputGroup>
                       <InputLeftAddon children={input.letter} color='gray.500' />
                       {/* <Input onFocus={(e) => e.target.select()} step="0.0001" type="number" placeholder={input.placeholder} {...register(input.letter, { required: true })} /> */}
-                      <NumberInput min={0.001} precision={3} step={0.001} >
-                        <NumberInputField {...register(input.letter, { required: true })} onFocus={(e) => e.target.select()} pr={1} textAlign="center" color="gray.600" bg="white" fontWeight="medium" fontSize={14} pl={1} borderRadius={0} placeholder={input.placeholder} />
+                      <NumberInput min={0.001} precision={3} step={0.001} onChange={e => setValue(`${input.letter}`, e)}>
+                        <NumberInputField  {...register(input.letter, { required: true })} onFocus={(e) => e.target.select()} pr={1} textAlign="center" color="gray.600" bg="white" fontWeight="medium" fontSize={14} pl={1} borderRadius={0} placeholder={input.placeholder} />
                       </NumberInput>
                       <InputRightAddon children={input.unit} color='gray.500' />
                     </InputGroup>
